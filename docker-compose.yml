@@ -1,0 +1,43 @@
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2
+    command: start --user root --pass password --bind 0.0.0.0:8000 rocksdb:/mydata/mydatabase.db
+    ports:
+      - "0.0.0.0:8000:8000"
+    volumes:
+      - ./surreal_data:/mydata
+
+  open_notebook:
+    image: lfnovo/open_notebook:v1-latest
+    ports:
+      - "0.0.0.0:8502:8502" # Web UI
+      - "0.0.0.0:5055:5055" # API
+    environment:
+      # Choose ONE provider (uncomment your choice):
+
+      # OpenRouter - 100+ models with one API key
+      # - OPENROUTER_API_KEY=sk-or-...
+
+      # Anthropic (Claude) - Excellent reasoning
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Google (Gemini) - Large context, cost-effective
+      # - GOOGLE_API_KEY=...
+
+      # Groq - Ultra-fast inference, free tier available
+      # - GROQ_API_KEY=gsk_...
+
+      # Mistral - European provider, good quality
+      # - MISTRAL_API_KEY=...
+
+      # Database (required)
+      - SURREAL_URL=ws://surrealdb:8000/rpc
+      - SURREAL_USER=root
+      - SURREAL_PASSWORD=password
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=open_notebook
+    volumes:
+      - ./notebook_data:/app/data
+    depends_on:
+      - surrealdb
+    restart: always
